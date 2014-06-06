@@ -1,6 +1,6 @@
 # Natural Language Toolkit (NLTK)
 #
-# Copyright (C) 2001-2013 NLTK Project
+# Copyright (C) 2001-2014 NLTK Project
 # Authors: Steven Bird <stevenbird1@gmail.com>
 #          Edward Loper <edloper@gmail.com>
 # URL: <http://nltk.org/>
@@ -41,7 +41,7 @@ if __doc__ is not None: # fix for the ``python -OO``
 
 # Copyright notice
 __copyright__ = """\
-Copyright (C) 2001-2013 NLTK Project.
+Copyright (C) 2001-2014 NLTK Project.
 
 Distributed and Licensed under the Apache License, Version 2.0,
 which is included by reference.
@@ -108,24 +108,17 @@ from nltk.probability import *
 from nltk.text import *
 from nltk.tree import *
 from nltk.util import *
-from nltk.yamltags import *
-from nltk.align import *
-
-# don't import contents into top-level namespace:
-
-from nltk import ccg
-from nltk import data
-from nltk import help
+from nltk.jsontags import *
 
 ###########################################################
 # PACKAGES
 ###########################################################
 
+from nltk.align import *
 from nltk.chunk import *
 from nltk.classify import *
 from nltk.inference import *
 from nltk.metrics import *
-from nltk.model import *
 from nltk.parse import *
 from nltk.tag import *
 from nltk.tokenize import *
@@ -171,9 +164,9 @@ else:
 # from a subpackage)
 
 from nltk import align, ccg, chunk, classify, collocations
-from nltk import data, featstruct, grammar, inference, metrics
-from nltk import misc, model, parse, probability, sem, stem
-from nltk import tag, text, tokenize, tree, treetransforms, util
+from nltk import data, featstruct, grammar, help, inference, metrics
+from nltk import misc, parse, probability, sem, stem, wsd
+from nltk import tag, tbl, text, tokenize, tree, treetransforms, util
 
 # override any accidentally imported demo
 def demo():
