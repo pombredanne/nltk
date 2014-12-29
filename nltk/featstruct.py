@@ -95,7 +95,7 @@ import copy
 
 from nltk.internals import read_str, raise_unorderable_types
 from nltk.sem.logic import (Variable, Expression, SubstituteBindingsI,
-                            LogicParser, ParseException)
+                            LogicParser, LogicalExpressionException)
 from nltk.compat import (string_types, integer_types, total_ordering,
                          python_2_unicode_compatible, unicode_repr)
 
@@ -2281,7 +2281,7 @@ class FeatStructReader(object):
         try:
             try:
                 expr = self._logic_parser.parse(match.group(1))
-            except ParseException:
+            except LogicalExpressionException:
                 raise ValueError()
             return expr, match.end()
         except ValueError:

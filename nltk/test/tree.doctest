@@ -39,34 +39,58 @@ tree object to one of several standard tree encodings:
             [.dp [.d the ] [.np dog ] ]
             [.vp [.v chased ] [.dp [.d the ] [.np cat ] ] ] ]
 
+There is also a fancy ASCII art representation:
+
+    >>> tree.pretty_print()
+                  s               
+          ________|_____           
+         |              vp        
+         |         _____|___       
+         dp       |         dp    
+      ___|___     |      ___|___   
+     d       np   v     d       np
+     |       |    |     |       |  
+    the     dog chased the     cat
+
+    >>> tree.pretty_print(unicodelines=True, nodedist=4)
+                           s                        
+            ┌──────────────┴────────┐                   
+            │                       vp              
+            │              ┌────────┴──────┐            
+            dp             │               dp       
+     ┌──────┴──────┐       │        ┌──────┴──────┐     
+     d             np      v        d             np
+     │             │       │        │             │     
+    the           dog    chased    the           cat
+
 Trees can be initialized from treebank strings:
 
-    >>> tree2 = Tree('(S (NP I) (VP (V enjoyed) (NP my cookie)))')
+    >>> tree2 = Tree.fromstring('(S (NP I) (VP (V enjoyed) (NP my cookie)))')
     >>> print(tree2)
     (S (NP I) (VP (V enjoyed) (NP my cookie)))
 
 Trees can be compared for equality:
 
-    >>> tree == Tree(str(tree))
+    >>> tree == Tree.fromstring(str(tree))
     True
-    >>> tree2 == Tree(str(tree2))
+    >>> tree2 == Tree.fromstring(str(tree2))
     True
     >>> tree == tree2
     False
-    >>> tree == Tree(str(tree2))
+    >>> tree == Tree.fromstring(str(tree2))
     False
-    >>> tree2 == Tree(str(tree))
+    >>> tree2 == Tree.fromstring(str(tree))
     False
 
-    >>> tree != Tree(str(tree))
+    >>> tree != Tree.fromstring(str(tree))
     False
-    >>> tree2 != Tree(str(tree2))
+    >>> tree2 != Tree.fromstring(str(tree2))
     False
     >>> tree != tree2
     True
-    >>> tree != Tree(str(tree2))
+    >>> tree != Tree.fromstring(str(tree2))
     True
-    >>> tree2 != Tree(str(tree))
+    >>> tree2 != Tree.fromstring(str(tree))
     True
 
     >>> tree < tree2 or tree > tree2
@@ -1074,5 +1098,4 @@ This used to discard the ``(B b)`` subtree (fixed in svn 6270):
 
     >>> print(Tree.fromstring('((A a) (B b))'))
     ( (A a) (B b))
-
 

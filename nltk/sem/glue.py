@@ -14,7 +14,7 @@ from nltk.internals import Counter
 from nltk.compat import string_types
 from nltk.corpus import brown
 from nltk.tag import UnigramTagger, BigramTagger, TrigramTagger, RegexpTagger
-from nltk.sem.logic import (LogicParser, Expression, Variable, VariableExpression,
+from nltk.sem.logic import (Expression, Variable, VariableExpression,
                             LambdaExpression, AbstractVariableExpression)
 from nltk.compat import python_2_unicode_compatible
 from nltk.sem import drt
@@ -36,7 +36,7 @@ class GlueFormula(object):
             indices = set()
 
         if isinstance(meaning, string_types):
-            self.meaning = LogicParser().parse(meaning)
+            self.meaning = Expression.fromstring(meaning)
         elif isinstance(meaning, Expression):
             self.meaning = meaning
         else:
@@ -579,8 +579,8 @@ class DrtGlueFormula(GlueFormula):
             indices = set()
 
         if isinstance(meaning, string_types):
-            self.meaning = drt.DrtParser().parse(meaning)
-        elif isinstance(meaning, drt.AbstractDrs):
+            self.meaning = drt.DrtExpression.fromstring(meaning)
+        elif isinstance(meaning, drt.DrtExpression):
             self.meaning = meaning
         else:
             raise RuntimeError('Meaning term neither string or expression: %s, %s' % (meaning, meaning.__class__))

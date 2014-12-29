@@ -168,7 +168,7 @@ Parse a valuation from a string.
     ... in => {(b1, n), (b2, n), (d2, n)}
     ... with => {(b1, g1), (g1, b1), (d1, b1), (b1, d1)}
     ... """
-    >>> val = parse_valuation(v)
+    >>> val = Valuation.fromstring(v)
 
     >>> print(val) # doctest: +SKIP
     {'bark': set([('d1',), ('d2',)]),
@@ -294,6 +294,7 @@ Propositional Model Test
 Test of i Function
 ------------------
 
+    >>> from nltk.sem import Expression
     >>> v = [('adam', 'b1'), ('betty', 'g1'), ('fido', 'd1'),
     ...      ('girl', set(['g1', 'g2'])), ('boy', set(['b1', 'b2'])), ('dog', set(['d1'])),
     ...      ('love', set([('b1', 'g1'), ('b2', 'g2'), ('g1', 'b1'), ('g2', 'b1')]))]
@@ -302,8 +303,7 @@ Test of i Function
     >>> m = Model(dom, val)
     >>> g = Assignment(dom, [('x', 'b1'), ('y', 'g2')])
     >>> exprs = ['adam', 'girl', 'love', 'walks', 'x', 'y', 'z']
-    >>> lp = LogicParser()
-    >>> parsed_exprs = [lp.parse(e) for e in exprs]
+    >>> parsed_exprs = [Expression.fromstring(e) for e in exprs]
     >>> sorted_set = lambda x: sorted(x) if isinstance(x, set) else x
     >>> for parsed in parsed_exprs:
     ...     try:
@@ -419,49 +419,49 @@ Satisfier Tests
     '- exists y. love(y, x)' gets value: False
     'exists y. (love(adam, y) & love(y, x))' gets value: True
 
-    >>> lp = LogicParser()
+    >>> from nltk.sem import Expression
     >>> for fmla in formulas: # doctest: +NORMALIZE_WHITESPACE
-    ...     p = lp.parse(fmla)
+    ...     p = Expression.fromstring(fmla)
     ...     g.purge()
     ...     print("Satisfiers of '%s':\n\t%s" % (p, sorted(m.satisfiers(p, 'x', g))))
     Satisfiers of 'boy(x)':
-    	['b1', 'b2']
+    ['b1', 'b2']
     Satisfiers of '(x = x)':
-    	['b1', 'b2', 'd1', 'g1', 'g2']
+    ['b1', 'b2', 'd1', 'g1', 'g2']
     Satisfiers of '(boy(x) | girl(x))':
-    	['b1', 'b2', 'g1', 'g2']
+    ['b1', 'b2', 'g1', 'g2']
     Satisfiers of '(boy(x) & girl(x))':
-    	[]
+    []
     Satisfiers of 'love(adam,x)':
-    	['g1']
+    ['g1']
     Satisfiers of 'love(x,adam)':
-    	['g1', 'g2']
+    ['g1', 'g2']
     Satisfiers of '-(x = adam)':
-    	['b2', 'd1', 'g1', 'g2']
+    ['b2', 'd1', 'g1', 'g2']
     Satisfiers of 'exists z22.love(x,z22)':
-    	['b1', 'b2', 'g1', 'g2']
+    ['b1', 'b2', 'g1', 'g2']
     Satisfiers of 'exists y.love(y,x)':
-    	['b1', 'g1', 'g2']
+    ['b1', 'g1', 'g2']
     Satisfiers of 'all y.(girl(y) -> love(x,y))':
-    	[]
+    []
     Satisfiers of 'all y.(girl(y) -> love(y,x))':
-    	['b1']
+    ['b1']
     Satisfiers of 'all y.(girl(y) -> (boy(x) & love(y,x)))':
-    	['b1']
+    ['b1']
     Satisfiers of '(boy(x) & all y.(girl(y) -> love(x,y)))':
-    	[]
+    []
     Satisfiers of '(boy(x) & all y.(girl(y) -> love(y,x)))':
-    	['b1']
+    ['b1']
     Satisfiers of '(boy(x) & exists y.(girl(y) & love(y,x)))':
-    	['b1']
+    ['b1']
     Satisfiers of '(girl(x) -> dog(x))':
-    	['b1', 'b2', 'd1']
+    ['b1', 'b2', 'd1']
     Satisfiers of 'all y.(dog(y) -> (x = y))':
-    	['d1']
+    ['d1']
     Satisfiers of '-exists y.love(y,x)':
-    	['b2', 'd1']
+    ['b2', 'd1']
     Satisfiers of 'exists y.(love(adam,y) & love(y,x))':
-    	['b1']
+    ['b1']
 
 
 Tests based on the Blackburn & Bos testsuite

@@ -30,19 +30,22 @@ class DependencyGraph(object):
     """
     A container for the nodes and labelled edges of a dependency structure.
     """
-    def __init__(self, tree_str=None):
+    def __init__(self, tree_str=None, zero_based=False):
         """
         We place a dummy 'top' node in the first position
         in the nodelist, since the root node is often assigned '0'
         as its head. This also means that the indexing of the nodelist
         corresponds directly to the Malt-TAB format, which starts at 1.
+
+        If zero-based is True, then Malt-TAB-like input with node numbers
+        starting at 0 and the root node assigned -1 (as produced by, e.g., zpar).
         """
-        top = {'word':None, 'deps':[], 'rel': 'TOP', 'tag': 'TOP', 'address': 0}
+        top = {'word': None, 'lemma': None, 'ctag': 'TOP', 'tag': 'TOP', 'feats': None, 'rel': 'TOP', 'deps': [], 'address': 0}
         self.nodelist = [top]
         self.root = None
         self.stream = None
         if tree_str:
-            self._parse(tree_str)
+            self._parse(tree_str, zero_based)
 
     def remove_by_address(self, address):
         """
@@ -117,13 +120,15 @@ class DependencyGraph(object):
         return "<DependencyGraph with %d nodes>" % len(self.nodelist)
 
     @staticmethod
-    def load(file):
+    def load(filename, zero_based=False):
         """
-        :param file: a file in Malt-TAB format
+        :param filename: a name of a file in Malt-TAB format
+        :param zero_based: nodes in the input file are numbered starting from 0 rather
+            than 1 (as produced by, e.g., zpar)
         :return: a list of DependencyGraphs
         """
-        with open(file) as infile:
-            return [DependencyGraph(tree_str) for tree_str in
+        with open(filename) as infile:
+            return [DependencyGraph(tree_str, zero_based=zero_based) for tree_str in
                                                   infile.read().split('\n\n')]
 
     @staticmethod
@@ -156,7 +161,7 @@ class DependencyGraph(object):
         if not self.contains_address(node['address']):
             self.nodelist.append(node)
 
-    def _parse(self, input):
+    def _parse(self, input, zero_based):
         lines = [DependencyGraph._normalize(line) for line in input.split('\n') if line.strip()]
         temp = []
         for index, line in enumerate(lines):
@@ -166,17 +171,19 @@ class DependencyGraph(object):
                 nrCells = len(cells)
                 if nrCells == 3:
                     word, tag, head = cells
-                    rel = ''
+                    lemma, ctag, feats, rel = word, tag, '', ''
                 elif nrCells == 4:
                     word, tag, head, rel = cells
+                    lemma, ctag, feats = word, tag, ''
                 elif nrCells == 10:
-                    _, word, _, _, tag, _, head, rel, _, _ = cells
+                    _, word, lemma, ctag, tag, feats, head, rel, _, _ = cells
                 else:
                     raise ValueError('Number of tab-delimited fields (%d) not supported by CoNLL(10) or Malt-Tab(4) format' % (nrCells))
 
                 head = int(head)
-                self.nodelist.append({'address': index+1, 'word': word, 'tag': tag,
-                                      'head': head, 'rel': rel,
+                if zero_based:
+                    head += 1
+                self.nodelist.append({'address': index+1, 'word': word, 'lemma': lemma, 'ctag': ctag, 'tag': tag, 'feats': feats, 'head': head, 'rel': rel,
                                       'deps': [d for (d,h) in temp if h == index+1]})
 
                 try:
@@ -220,6 +227,23 @@ class DependencyGraph(object):
         word = node['word']
         deps = node['deps']
         return Tree(word, [self._tree(i) for i in deps])
+
+    def triples(self, node=None):
+        """
+        Extract dependency triples of the form:
+        ((head word, head tag), rel, (dep word, dep tag))
+        """
+
+        if not node:
+            node = self.root
+
+        head = (node['word'], node['ctag'])
+        for i in node['deps']:
+            dep = self.get_by_address(i)
+            yield (head, dep['rel'], (dep['word'], dep['ctag']))
+            for triple in self.triples(node=dep):
+                yield triple
+
 
     def _hd(self, i):
         try:
@@ -278,13 +302,13 @@ class DependencyGraph(object):
 
         lines = []
         for i, node in enumerate(self.nodelist[1:]):
-            word, tag, head, rel = node['word'], node['tag'], node['head'], node['rel']
+            word, lemma, ctag, tag, feats, head, rel = node['word'], node['lemma'], node['ctag'], node['tag'], node['feats'], node['head'], node['rel']
             if style == 3:
                 lines.append('%s\t%s\t%s\n' % (word, tag, head))
             elif style == 4:
                 lines.append('%s\t%s\t%s\t%s\n' % (word, tag, head, rel))
             elif style == 10:
-                lines.append('%s\t%s\t_\t%s\t%s\t_\t%s\t%s\t_\t_\n' % (i+1, word, tag, tag, head, rel))
+                lines.append('%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t_\t_\n' % (i+1, word, lemma, ctag, tag, feats, head, rel))
             else:
                 raise ValueError('Number of tab-delimited fields (%d) not supported by CoNLL(10) or Malt-Tab(4) format' % (style))
         return ''.join(lines)
