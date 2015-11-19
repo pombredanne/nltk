@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Corpus & Model Downloader
 #
-# Copyright (C) 2001-2014 NLTK Project
+# Copyright (C) 2001-2015 NLTK Project
 # Author: Edward Loper <edloper@gmail.com>
 # URL: <http://nltk.org/>
 # For license information, see LICENSE.TXT
@@ -840,8 +840,11 @@ class Downloader(object):
             for i, child_id in enumerate(collection.children):
                 if child_id in self._packages:
                     collection.children[i] = self._packages[child_id]
-                if child_id in self._collections:
+                elif child_id in self._collections:
                     collection.children[i] = self._collections[child_id]
+                else:
+                    print('removing collection member with no package: {}'.format(child_id))
+                    del collection.children[i]
 
         # Fill in collection.packages for each collection.
         for collection in self._collections.values():
@@ -921,6 +924,10 @@ class Downloader(object):
         permission: ``/usr/share/nltk_data``, ``/usr/local/share/nltk_data``,
         ``/usr/lib/nltk_data``, ``/usr/local/lib/nltk_data``, ``~/nltk_data``.
         """
+        # Check if we are on GAE where we cannot write into filesystem.
+        if 'APPENGINE_RUNTIME' in os.environ:
+            return
+
         # Check if we have sufficient permissions to install in a
         # variety of system-wide locations.
         for nltkdir in nltk.data.path:
@@ -1098,8 +1105,8 @@ class DownloaderShell(object):
             if user_input == 's':
                 self._show_config()
             elif user_input == 'd':
-                new_dl_dir = compat.raw_input('  New Directory> ').strip().lower()
-                if new_dl_dir in ('', 'x', 'q'):
+                new_dl_dir = compat.raw_input('  New Directory> ').strip()
+                if new_dl_dir in ('', 'x', 'q', 'X', 'Q'):
                     print('  Cancelled!')
                 elif os.path.isdir(new_dl_dir):
                     self._ds.download_dir = new_dl_dir
@@ -1107,8 +1114,8 @@ class DownloaderShell(object):
                     print(('Directory %r not found!  Create it first.' %
                            new_dl_dir))
             elif user_input == 'u':
-                new_url = compat.raw_input('  New URL> ').strip().lower()
-                if new_url in ('', 'x', 'q'):
+                new_url = compat.raw_input('  New URL> ').strip()
+                if new_url in ('', 'x', 'q', 'X', 'Q'):
                     print('  Cancelled!')
                 else:
                     if not new_url.startswith('http://'):
@@ -2264,4 +2271,3 @@ if __name__ == '__main__':
         downloader.download(download_dir=options.dir,
             quiet=options.quiet, force=options.force,
             halt_on_error=options.halt_on_error)
-

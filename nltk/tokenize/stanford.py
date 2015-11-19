@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Natural Language Toolkit: Interface to the Stanford Tokenizer
 #
-# Copyright (C) 2001-2014 NLTK Project
+# Copyright (C) 2001-2015 NLTK Project
 # Author: Steven Xu <xxu@student.unimelb.edu.au>
 #
 # URL: <http://nltk.org/>
@@ -19,13 +19,13 @@ from nltk.internals import find_jar, config_java, java, _java_options
 
 from nltk.tokenize.api import TokenizerI
 
-_stanford_url = 'http://nlp.stanford.edu/software/lex-parser.shtml'
+_stanford_url = 'http://nlp.stanford.edu/software/tokenizer.shtml'
 
 class StanfordTokenizer(TokenizerI):
     r"""
     Interface to the Stanford Tokenizer
 
-    >>> from nltk.tokenize.stanford import StanfordTokenizer
+    >>> from nltk.tokenize import StanfordTokenizer
     >>> s = "Good muffins cost $3.88\nin New York.  Please buy me\ntwo of them.\nThanks."
     >>> StanfordTokenizer().tokenize(s)
     ['Good', 'muffins', 'cost', '$', '3.88', 'in', 'New', 'York', '.', 'Please', 'buy', 'me', 'two', 'of', 'them', '.', 'Thanks', '.']
@@ -36,7 +36,7 @@ class StanfordTokenizer(TokenizerI):
 
     _JAR = 'stanford-postagger.jar'
 
-    def __init__(self, path_to_jar=None, encoding='UTF-8', options=None, verbose=False, java_options='-mx1000m'):
+    def __init__(self, path_to_jar=None, encoding='utf8', options=None, verbose=False, java_options='-mx1000m'):
         self._stanford_jar = find_jar(
             self._JAR, path_to_jar,
             env_vars=('STANFORD_POSTAGGER',),
@@ -46,28 +46,10 @@ class StanfordTokenizer(TokenizerI):
 
         self._encoding = encoding
         self.java_options = java_options
-        #options = {} if options is None else options
-        
-        # Long Duong : fix bug #735 
-        options_str = options
-        options = {} 
-        if options_str is not None:
-            tokens = options_str.split()
-            if len(tokens) % 2 !=0:
-                    raise ValueError("Must be in set of (argument,value) pair")
-            
-            for i in range(len(tokens)/2):
-                key = tokens[2*i]
-                # Work the case when key might contain -  as in -tokenizeNLs
-                temp = list(key)
-                if temp[0] == '-':
-                    key = "".join(temp[1:])
-                
-                value = tokens[2*i+1]
-                options[key] = value 
-                
+
+        options = {} if options is None else options
         self._options_cmd = ','.join('{0}={1}'.format(key, val) for key, val in options.items())
-         
+
     @staticmethod
     def _parse_tokenized_output(s):
         return s.splitlines()
@@ -123,3 +105,5 @@ def setup_module(module):
         StanfordTokenizer()
     except LookupError:
         raise SkipTest('doctests from nltk.tokenize.stanford are skipped because the stanford postagger jar doesn\'t exist')
+
+

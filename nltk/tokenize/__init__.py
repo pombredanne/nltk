@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Natural Language Toolkit: Tokenizers
 #
-# Copyright (C) 2001-2014 NLTK Project
+# Copyright (C) 2001-2015 NLTK Project
 # Author: Edward Loper <edloper@gmail.com>
 #         Steven Bird <stevenbird1@gmail.com> (minor additions)
 # URL: <http://nltk.org/>
@@ -69,7 +69,10 @@ from nltk.tokenize.regexp   import (RegexpTokenizer, WhitespaceTokenizer,
 from nltk.tokenize.punkt    import PunktSentenceTokenizer
 from nltk.tokenize.sexpr    import SExprTokenizer, sexpr_tokenize
 from nltk.tokenize.treebank import TreebankWordTokenizer
+from nltk.tokenize.stanford import StanfordTokenizer
 from nltk.tokenize.texttiling import TextTilingTokenizer
+from nltk.tokenize.casual   import (TweetTokenizer, casual_tokenize)
+from nltk.tokenize.mwe      import MWETokenizer
 
 # Standard sentence tokenizer.
 def sent_tokenize(text, language='english'):
@@ -101,6 +104,3 @@ def word_tokenize(text, language='english'):
     return [token for sent in sent_tokenize(text, language)
             for token in _treebank_word_tokenize(sent)]
 
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE)
