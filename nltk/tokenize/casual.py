@@ -153,10 +153,12 @@ REGEXPS = (
     # Twitter hashtags:
     r"""(?:\#+[\w_]+[\w\'_\-]*[\w_]+)"""
     ,
-
+    # email addresses
+    r"""[\w.+-]+@[\w-]+\.(?:[\w-]\.?)+[\w-]"""
+    ,
     # Remaining word types:
     r"""
-    (?:\w[\w'\-_]+\w)              # Words with apostrophes or dashes.
+    (?:[^\W\d_](?:[^\W\d_]|['\-_])+[^\W\d_]) # Words with apostrophes or dashes.
     |
     (?:[+\-]?\d+[,/.:-]\d+[+\-]?)  # Numbers, including fractions, decimals.
     |
@@ -173,6 +175,9 @@ REGEXPS = (
 
 WORD_RE = re.compile(r"""(%s)""" % "|".join(REGEXPS), re.VERBOSE | re.I
                      | re.UNICODE)
+
+# WORD_RE performs poorly on these patterns:
+HANG_RE = re.compile(r'([^a-zA-Z0-9])\1{3,}')
 
 # The emoticon string gets its own regex so that we can preserve case for
 # them as needed:
@@ -264,35 +269,13 @@ class TweetTokenizer:
         >>> s0 = "This is a cooool #dummysmiley: :-) :-P <3 and some arrows < > -> <--"
         >>> tknzr.tokenize(s0)
         ['This', 'is', 'a', 'cooool', '#dummysmiley', ':', ':-)', ':-P', '<3', 'and', 'some', 'arrows', '<', '>', '->', '<--']
-        >>> s1 = "@Joyster2012 @CathStaincliffe Good for you, girl!! Best wishes :-)"
-        >>> tknzr.tokenize(s1)
-        ['@Joyster2012', '@CathStaincliffe', 'Good', 'for', 'you', ',', 'girl', '!', '!', 'Best', 'wishes', ':-)']
-        >>> s2 = "3Points for #DreamTeam Gooo BAILEY! :) #PBB737Gold @PBBabscbn"
-        >>> tknzr.tokenize(s2)
-        ['3Points', 'for', '#DreamTeam', 'Gooo', 'BAILEY', '!', ':)', '#PBB737Gold', '@PBBabscbn']
-        >>> s3 = "@Insanomania They do... Their mentality doesn't :("
-        >>> tknzr.tokenize(s3)
-        ['@Insanomania', 'They', 'do', '...', 'Their', 'mentality', "doesn't", ':(']
-        >>> s4 = "RT @facugambande: Ya por arrancar a grabar !!! #TirenTirenTiren vamoo !!"
-        >>> tknzr.tokenize(s4)
-        ['RT', '@facugambande', ':', 'Ya', 'por', 'arrancar', 'a', 'grabar', '!', '!', '!', '#TirenTirenTiren', 'vamoo', '!', '!']
-        >>> tknzr = TweetTokenizer(reduce_len=True)
-        >>> s5 = "@crushinghes the summer holidays are great but I'm so bored already :("
-        >>> tknzr.tokenize(s5)
-        ['@crushinghes', 'the', 'summer', 'holidays', 'are', 'great', 'but', "I'm", 'so', 'bored', 'already', ':(']
 
     Examples using `strip_handles` and `reduce_len parameters`:
 
         >>> tknzr = TweetTokenizer(strip_handles=True, reduce_len=True)
-        >>> s6 = '@remy: This is waaaaayyyy too much for you!!!!!!'
-        >>> tknzr.tokenize(s6)
+        >>> s1 = '@remy: This is waaaaayyyy too much for you!!!!!!'
+        >>> tknzr.tokenize(s1)
         [':', 'This', 'is', 'waaayyy', 'too', 'much', 'for', 'you', '!', '!', '!']
-        >>> s7 = '@_willy65: No place for @chuck tonight. Sorry.'
-        >>> tknzr.tokenize(s7)
-        [':', 'No', 'place', 'for', 'tonight', '.', 'Sorry', '.']
-        >>> s8 = '@mar_tin is a great developer. Contact him at mar_tin@email.com'
-        >>> tknzr.tokenize(s8)
-        ['is', 'a', 'great', 'developer', '.', 'Contact', 'him', 'at', 'mar_tin', '@email', '.', 'com']
     """
 
     def __init__(self, preserve_case=True, reduce_len=False, strip_handles=False):
@@ -315,8 +298,10 @@ class TweetTokenizer:
         # Normalize word lengthening
         if self.reduce_len:
             text = reduce_lengthening(text)
+        # Shorten problematic sequences of characters
+        safe_text = HANG_RE.sub(r'\1\1\1', text)
         # Tokenize:
-        words = WORD_RE.findall(text)
+        words = WORD_RE.findall(safe_text)
         # Possibly alter the case, but avoid changing emoticons like :D into :d:
         if not self.preserve_case:
             words = list(map((lambda x : x if EMOTICON_RE.search(x) else

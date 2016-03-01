@@ -17,7 +17,7 @@ from subprocess import PIPE
 from io import StringIO
 
 from nltk import compat
-from nltk.internals import find_jar, find_jar_iter, config_java, java, _java_options
+from nltk.internals import find_jar, find_jar_iter, config_java, java, _java_options, find_jars_within_path
 
 from nltk.parse.api import ParserI
 from nltk.parse.dependencygraph import DependencyGraph
@@ -61,7 +61,11 @@ class GenericStanfordParser(ParserI):
             key=lambda model_name: re.match(self._MODEL_JAR_PATTERN, model_name)
         )
 
-        self._classpath = (stanford_jar, model_jar)
+        #self._classpath = (stanford_jar, model_jar)
+        
+        # Adding logging jar files to classpath 
+        stanford_dir = os.path.split(stanford_jar)[0]
+        self._classpath = tuple([model_jar] + find_jars_within_path(stanford_dir))
 
         self.model_path = model_path
         self._encoding = encoding
@@ -210,7 +214,9 @@ class GenericStanfordParser(ParserI):
                 cmd.append(input_file.name)
                 stdout, stderr = java(cmd, classpath=self._classpath,
                                       stdout=PIPE, stderr=PIPE)
-
+                
+            stdout = stdout.replace(b'\xc2\xa0',b' ')
+            stdout = stdout.replace(b'\xa0',b' ')
             stdout = stdout.decode(encoding)
 
         os.unlink(input_file.name)

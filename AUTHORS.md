@@ -58,9 +58,11 @@
 - Jean Mark Gawron
 - Sumukh Ghodke
 - Yoav Goldberg
+- Michael Wayne Goodman
 - Dougal Graham
 - Brent Gray
 - Simon Greenhill
+- Clark Grubb
 - Eduardo Pereira Habkost
 - Masato Hagiwara
 - Lauri Hallila
@@ -188,3 +190,4 @@
 - bjut-hz
 - Sergio Oller
 - Will Monroe
+- Elijah Rippeth

@@ -551,13 +551,14 @@ def skipgrams(sequence, n, k, **kwargs):
         sequence = pad_sequence(sequence, n, **kwargs)
     
     # Note when iterating through the ngrams, the pad_right here is not
-    # the **kwargs padding, it's for the algorithm to detect None on the 
-    # right pad to stop inner loop.
-    for ngram in ngrams(sequence, n + k, pad_right=True):
+    # the **kwargs padding, it's for the algorithm to detect the SENTINEL 
+    # object on the right pad to stop inner loop.
+    SENTINEL = object()
+    for ngram in ngrams(sequence, n + k, pad_right=True, right_pad_symbol=SENTINEL):
         head = ngram[:1]
         tail = ngram[1:]
         for skip_tail in combinations(tail, n - 1):
-            if skip_tail[-1] is None:
+            if skip_tail[-1] is SENTINEL:
                 continue
             yield head + skip_tail
 
@@ -1331,8 +1332,9 @@ class Trie(defaultdict):
 
         >>> from nltk.util import Trie
         >>> trie = Trie(["abc", "def"])
-        >>> trie.as_dict()
-        {'a': {'b': {'c': {True: None}}}, 'd': {'e': {'f': {True: None}}}}
+        >>> expected = {'a': {'b': {'c': {True: None}}}, 'd': {'e': {'f': {True: None}}}}
+        >>> trie.as_dict() == expected
+        True
 
         """
         def _default_to_regular(d):
@@ -1356,7 +1358,7 @@ class Trie(defaultdict):
 
             """
             if isinstance(d, defaultdict):
-                d = {k: _default_to_regular(v) for k, v in d.iteritems()}
+                d = {k: _default_to_regular(v) for k, v in d.items()}
             return d
         
         return _default_to_regular(self)
